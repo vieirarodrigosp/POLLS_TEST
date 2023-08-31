@@ -1,0 +1,22 @@
+version: '3.7'
+services:
+  #  # MySQL Manager (dependence)
+  mysql:
+    image: mysql:latest
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: session
+      MYSQL_PASSWORD: root
+      MYSQL_DATABASE: sessionmanagerdb
+    volumes:
+      - ./docker-entrypoint-initdb.d/:/docker-entrypoint-initdb.d/
+      - ./docker-entrypoint-initdb.d/mysql-init/data/:/data/db
+    ports:
+      - "3306:3306"
+    networks:
+      - internalnet
+
+networks:
+  internalnet:
+    driver: bridge
