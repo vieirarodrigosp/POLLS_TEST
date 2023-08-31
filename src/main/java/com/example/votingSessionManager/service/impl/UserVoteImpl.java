@@ -10,8 +10,10 @@ import com.example.votingSessionManager.service.UserVoteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static com.example.votingSessionManager.constants.BaseMocksConstant.*;
+
 @Service
-public class UserVoteImpl  implements UserVoteService {
+public class UserVoteImpl implements UserVoteService {
   @Autowired
   private UserService userService;
   @Autowired
@@ -25,21 +27,21 @@ public class UserVoteImpl  implements UserVoteService {
     if(result){
       return this.validateUserPermissionAndSave(userVoteDTO);
     }
-    throw new UserVoterException("voting has closed");
+    throw new UserVoterException(INFO_VOTING_CLOSED);
   }
   private UserVoteDTO findAndSave(UserVoteDTO userVoteDTO){
     var userVoteByDb = userVoteRepository.findByPollIdAndUserId(userVoteDTO.getPollId(), userVoteDTO.getUserId());
     if(userVoteByDb==null){
       return UserVoteDTO.of(userVoteRepository.save(userVoteDTO.toEntity()));
     }
-    throw new UserVoterException("user has already polled");
+    throw new UserVoterException(INFO_USER_ALREADY_POLLED);
   }
   private UserVoteDTO validateUserPermissionAndSave(UserVoteDTO userVoteDTO){
     var permissionUser = userService.validateUserPermission(userVoteDTO.getUserId());
     if(permissionUser){
       return this.findAndSave(userVoteDTO);
     }
-    throw new UserVoterException("User does not have voting permission");
+    throw new UserVoterException(INFO_VOTING_NOT_HAVE_PERMISSION);
   }
   @Override
   public CountUserVoteDTO voteCountById(Integer pollId) {

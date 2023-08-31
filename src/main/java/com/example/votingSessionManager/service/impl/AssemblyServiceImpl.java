@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import static com.example.votingSessionManager.constants.BaseMocksConstant.ERROR_CREATING_ASSEMBLY;
+
 @Service
 public class AssemblyServiceImpl implements AssemblyService {
   @Autowired
@@ -19,7 +21,7 @@ public class AssemblyServiceImpl implements AssemblyService {
     try {
       return AssemblyDTO.of(assemblyRepository.save(assemblyDTO.toEntity()));
     } catch (AssemblyException exception) {
-      throw new AssemblyException("Error when creating a new assembly");
+      throw new AssemblyException(ERROR_CREATING_ASSEMBLY);
     }
 
   }

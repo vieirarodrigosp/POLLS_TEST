@@ -1,6 +1,7 @@
 package com.example.votingSessionManager.service.impl;
 
 import com.example.votingSessionManager.dto.PollDTO;
+import com.example.votingSessionManager.entity.Poll;
 import com.example.votingSessionManager.enums.ProjectionEnum;
 import com.example.votingSessionManager.exception.PollException;
 import com.example.votingSessionManager.repository.PollRepository;
@@ -12,6 +13,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.stream.Collectors;
+
+import static com.example.votingSessionManager.constants.BaseMocksConstant.ERROR_ALREADY_EXISTS_ASSEMBLY;
+import static com.example.votingSessionManager.constants.BaseMocksConstant.ERROR_POLL_CLOSED;
 
 @Service
 public class PollServiceImpl implements PollService {
@@ -26,13 +30,13 @@ public class PollServiceImpl implements PollService {
       pollDTO.setStartSession(LocalDateTime.now());
       return PollDTO.of(pollRepository.save(pollDTO.toEntity()));
     } else {
-      throw new PollException("There is already a vote for this assembly");
+      throw new PollException(ERROR_ALREADY_EXISTS_ASSEMBLY);
     }
   }
   @Override
   public PollDTO close(PollDTO pollDTO) {
     var pollByDB = pollRepository.findByAssemblyIdAndAndEndSession(pollDTO.getAssemblyId(), null);
-    return this.closeAndSend(PollDTO.of(pollByDB));
+    return this.closeAndSend(pollByDB);
   }
   @Override
   public Collection<PollDTO> findByProjection(ProjectionEnum projectionEnum) {
@@ -61,19 +65,19 @@ public class PollServiceImpl implements PollService {
       var endSession = poll.getStartSession().plusMinutes(assembly.getDuration());
       var deadline = LocalDateTime.now().isAfter(endSession);
       if(deadline) {
-        this.closeAndSend(poll);
+        this.closeAndSend(poll.toEntity());
         return false;
       }
       return true;
     }
     return false;
   }
-  private PollDTO closeAndSend(PollDTO pollDTO) {
-    if(pollDTO!=null){
-      pollDTO.setEndSession(LocalDateTime.now());
-      return PollDTO.of(pollRepository.save(pollDTO.toEntity()));
+  private PollDTO closeAndSend(Poll poll) {
+    if(poll!=null){
+      poll.setEndSession(LocalDateTime.now());
+      return PollDTO.of(pollRepository.save(poll));
     } else {
-      throw new PollException("This poll is closed");
+      throw new PollException(ERROR_POLL_CLOSED);
     }
   }
 }
